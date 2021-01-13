@@ -23,99 +23,204 @@ loader
   .on("progress", loadProgressHander)
   .load(setup);
 
+let message, id, BG, BTN, BTNd;
+let arrayOfSymbols = [];
+let arrWithAlreadyExists = [];
+let counter = 0;
+
+let style = new TextStyle({
+  fontFamily: "Futura",
+  fontSize: 38,
+  fill: "white",
+  width: "100px",
+  height: "50px"
+});
+
 function loadProgressHander(loader, resource){
   console.log("loading: " + resource.url);
   console.log("progress: " + loader.progress + "%");
-
-  let style = new TextStyle({
-    fontFamily: "Futura",
-    fontSize: 38,
-    fill: "white",
-    width: "100px",
-    height: "50px"
-  });
   
-  let message = new Text("Loading...", style);
+  message = new Text("Loading...", style);
   message.x = 960/2 - 0.5*message.width;
   message.y = 535/2 - 0.5*message.height;
 
   app.stage.addChild(message);
+
 }
 
 function setup(){
   console.log("All files loaded");
 
-  let id = resources["images/game.json"].textures;
+  app.stage.removeChild(message);
 
-  let BG = new Sprite(id["BG.png"]);
+  id = resources["images/game.json"].textures;
+
+  BG = new Sprite(id["BG.png"]);
   app.stage.addChild(BG);
+        
+  BTN = new Sprite(id["BTN_Spin.png"]);
+  BTN.name = "button";
+  BTN.position.x = app.stage.width - BTN.width - 38;
+  BTN.position.y = app.stage.height / 2 - BTN.height / 2;
+  BTN.interactive = true;
+  BTN.buttonMode = true;
+  BTN.tap = onButtonClick;
+  BTN.click = onButtonClick;
 
-  let BTN = new Sprite(id["BTN_Spin.png"]);
   app.stage.addChild(BTN);
-  BTN.x = app.stage.width - BTN.width - 38;
-  BTN.y = app.stage.height / 2 - BTN.height / 2;
+  
+  function onButtonClick() {
+    if (this.name === "button") {
+      startSpin();
+    }
+  }
 
-  let BTNd = new Sprite(id["BTN_Spin_d.png"]);
+  BTNd = new Sprite(id["BTN_Spin_d.png"]);
   app.stage.addChild(BTNd);
   BTNd.x = app.stage.width - BTN.width - 38;
   BTNd.y = app.stage.height / 2 - BTN.height / 2;
   BTNd.visible = false;
 
-  let SYM1 = new Sprite(id["SYM1.png"]);
-  app.stage.addChild(SYM1);
-  SYM1.x = app.stage.width / 4 - ((app.stage.width / 4) / 3) * 2 - 11;
-  SYM1.y = app.stage.height / 3 + 11;
 
-  let SYM3 = new Sprite(id["SYM3.png"]);
-  app.stage.addChild(SYM3);
-  SYM3.x = app.stage.width / 4 - ((app.stage.width / 4) / 3) * 2 - 11;
-  SYM3.y = app.stage.height / 3 + (app.stage.height / 3) + 11;
+  function arrayRandElement(arr) {
+    let rand = Math.floor(Math.random() * arr.length);
+    arrWithAlreadyExists.push(arr[rand]);
+    return arr[rand];
+    }
 
-  let SYM4 = new Sprite(id["SYM4.png"]);
-  app.stage.addChild(SYM4);
-  SYM4.x = app.stage.width / 4 - ((app.stage.width / 4) / 3) * 2 - 11;
-  SYM4.y = app.stage.height / 3 - (app.stage.height / 3) + 11;
+  arrayOfSymbols = [id["SYM1.png"], id["SYM3.png"], id["SYM4.png"], id["SYM5.png"], id["SYM6.png"], id["SYM7.png"]]
 
-  let SYM5 = new Sprite(id["SYM5.png"]);
-  app.stage.addChild(SYM5);
-  SYM5.x = app.stage.width / 4 + ((app.stage.width / 4) / 3) - 11;
-  SYM5.y = app.stage.height / 3 + 11;
+  let reelWidth = 240;
+  let symbolSize = 170;
+  let reels = [];
+  let reelContainer = new Container();
+  for (let i = 0; i < 3; i++){
 
-  let SYM6 = new Sprite(id["SYM6.png"]);
-  app.stage.addChild(SYM6);
-  SYM6.x = app.stage.width / 4 + ((app.stage.width / 4) / 3) - 11;
-  SYM6.y = app.stage.height / 3 + (app.stage.height / 3) + 11;
+    let rc = new Container();
+    rc.x = 110 + i * reelWidth;
+    reelContainer.addChild(rc);
 
-  let SYM7 = new Sprite(id["SYM7.png"]);
-  app.stage.addChild(SYM7);
-  SYM7.x = app.stage.width / 4 + ((app.stage.width / 4) / 3) - 11;
-  SYM7.y = app.stage.height / 3 - (app.stage.height / 3) + 11;
+    let reel = {
+      container: rc,
+      symbols: [],
+      position: 0,
+      previousPosition: 0,
+    }
 
+    for (let j = 0; j < 4; j++) {
+      const symbol = new Sprite(arrayRandElement(arrayOfSymbols));
+      symbol.y = 55 + j * symbolSize;
+      symbol.x = Math.round((symbolSize - symbol.width) / 2);
+      reel.symbols.push(symbol);
+      rc.addChild(symbol);
+    }
+    reels.push(reel);
+  }
 
+  app.stage.addChild(reelContainer);
+  
+  const margin = 10;
+  reelContainer.y = margin;
+  reelContainer.x = -margin;
 
-  gameScene = new Container();
-  app.stage.addChild(gameScene);
+  let running = false;
 
-  gameOverScene = new Container();
-  app.stage.addChild(gameOverScene);
+  function startSpin() {
+    if (running) {
+      return;
+    };
+    running = true;
+    BTNd.visible = true;
 
-  gameOverScene.visible = false;
+    for (let i = 0; i < reels.length; i++) {
+      const r = reels[i];
+      const extra = Math.floor(Math.random() * 3);
+      const target = r.position + 10 + i * 5 + extra;
+      const time = 2500 + i * 600 + extra * 600;
+      tweenTo(r, 'position', target, time, backout(0.5), null, i === reels.length - 1 ? reelsComplete : null);
+    }
+  }
 
-  //set the game state to `play`
-  state = play;
+  function reelsComplete() {
+    running = false;
+    BTNd.visible = false;
+  }
 
-  //Start the game loop 
-  app.ticker.add(delta => gameLoop(delta));
+  app.ticker.add(delta => {
+    for (let i = 0; i < reels.length; i++) {
+      const r = reels[i];
+
+      // Update symbol positions on reel.
+      for (let j = 0; j < r.symbols.length; j++) {
+          const s = r.symbols[j];
+          const prevy = s.y;
+          s.y = ((r.position + j) % r.symbols.length) * symbolSize - symbolSize;
+          if (s.y < 0 && prevy > symbolSize) {
+              // This should in proper product be determined from some logical reel.
+              s.texture = arrayOfSymbols[Math.floor(Math.random() * arrayOfSymbols.length)];
+              s.x = Math.round((symbolSize - s.width) / 2);
+          }
+      }
+  }
+  });
 }
 
-function gameLoop(delta) {
-  //Runs the current game `state` in a loop and renders the sprites
+const tweening = [];
+function tweenTo(object, property, target, time, easing, onchange, oncomplete) {
+    const tween = {
+        object,
+        property,
+        propertyBeginValue: object[property],
+        target,
+        easing,
+        time,
+        change: onchange,
+        complete: oncomplete,
+        start: Date.now(),
+    };
+
+    tweening.push(tween);
+    return tween;
 }
 
-function play(delta) {
-  //All the game logic goes here
+app.ticker.add((delta) => {
+  const now = Date.now();
+  const remove = [];
+  for (let i = 0; i < tweening.length; i++) {
+      const t = tweening[i];
+      const phase = Math.min(1, (now - t.start) / t.time);
+
+      t.object[t.property] = lerp(t.propertyBeginValue, t.target, t.easing(phase));
+      if (t.change) t.change(t);
+      if (phase === 1) {
+          t.object[t.property] = t.target;
+          if (t.complete) t.complete(t);
+          remove.push(t);
+      }
+  }
+  for (let i = 0; i < remove.length; i++) {
+      tweening.splice(tweening.indexOf(remove[i]), 1);
+  }
+});
+
+// Basic lerp funtion.
+function lerp(a1, a2, t) {
+  return a1 * (1 - t) + a2 * t;
 }
 
-function end() {
-  //All the code that should run at the end of the game
+// Backout function from tweenjs.
+// https://github.com/CreateJS/TweenJS/blob/master/src/tweenjs/Ease.js
+function backout(amount) {
+  return (t) => (--t * t * ((amount + 1) * t + amount) + 1);
 }
+// function gameLoop(delta) {
+//   //Runs the current game `state` in a loop and renders the sprites
+// }
+
+// function play(delta) {
+//   //All the game logic goes here
+// }
+
+// function end() {
+//   //All the code that should run at the end of the game
+// }
