@@ -54,6 +54,7 @@ function setup(){
   app.stage.removeChild(message);
 
   id = resources["images/game.json"].textures;
+  arrayOfSymbols = [id["SYM1.png"], id["SYM3.png"], id["SYM4.png"], id["SYM5.png"], id["SYM6.png"], id["SYM7.png"]];
 
   BG = new Sprite(id["BG.png"]);
   app.stage.addChild(BG);
@@ -66,20 +67,20 @@ function setup(){
   BTN.buttonMode = true;
   BTN.tap = onButtonClick;
   BTN.click = onButtonClick;
-
   app.stage.addChild(BTN);
   
   function onButtonClick() {
     if (this.name === "button") {
       startSpin();
+      BTN.interactive = false;
     }
   }
 
   BTNd = new Sprite(id["BTN_Spin_d.png"]);
-  app.stage.addChild(BTNd);
   BTNd.x = app.stage.width - BTN.width - 38;
   BTNd.y = app.stage.height / 2 - BTN.height / 2;
   BTNd.visible = false;
+  app.stage.addChild(BTNd);
 
 
   function arrayRandElement(arr) {
@@ -87,8 +88,6 @@ function setup(){
     arrWithAlreadyExists.push(arr[rand]);
     return arr[rand];
     }
-
-  arrayOfSymbols = [id["SYM1.png"], id["SYM3.png"], id["SYM4.png"], id["SYM5.png"], id["SYM6.png"], id["SYM7.png"]]
 
   let reelWidth = 240;
   let symbolSize = 170;
@@ -116,9 +115,7 @@ function setup(){
     }
     reels.push(reel);
   }
-
   app.stage.addChild(reelContainer);
-  
   const margin = 10;
   reelContainer.y = margin;
   reelContainer.x = -margin;
@@ -144,7 +141,17 @@ function setup(){
   function reelsComplete() {
     running = false;
     BTNd.visible = false;
+    BTN.interactive = true;
   }
+
+  // function checkIfWin() {
+  //   console.log(typeof reels)
+  //   for (let i = 0; i < reels.length; i++) {
+  //     if (reels[i].reel.symbols[0] = reels[i+1].reel.symbols[0] = reels[i+2].reel.symbols[0]) {
+  //       console.log('WIN')
+  //     }
+  //   }
+  // }
 
   app.ticker.add(delta => {
     for (let i = 0; i < reels.length; i++) {
