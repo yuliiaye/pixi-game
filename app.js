@@ -220,13 +220,6 @@ function lerp(a1, a2, t) {
 function backout(amount) {
   return (t) => (--t * t * ((amount + 1) * t + amount) + 1);
 }
-// function gameLoop(delta) {
-//   //Runs the current game `state` in a loop and renders the sprites
-// }
-
-// function play(delta) {
-//   //All the game logic goes here
-// }
 
 // function end() {
 //   //All the code that should run at the end of the game
